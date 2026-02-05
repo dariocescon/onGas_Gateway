@@ -1,4 +1,4 @@
-package com.aton.proj.onGasGateway.filter;
+package com.aton.proj.oneGasGateway.filter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ public class GatewayLoggingFilter implements GlobalFilter, Ordered {
 				? exchange.getRequest().getRemoteAddress().getAddress().getHostAddress()
 				: "unknown";
 
-		logger.info("🚀 Incoming request: {} {} from {}", requestMethod, requestPath, remoteAddress);
+		logger.info("  Incoming request: {} {} from {}", requestMethod, requestPath, remoteAddress);
 
 		return chain.filter(exchange).then(Mono.fromRunnable(() -> {
 			long duration = System.currentTimeMillis() - startTime;
@@ -32,7 +32,7 @@ public class GatewayLoggingFilter implements GlobalFilter, Ordered {
 					? exchange.getResponse().getStatusCode().value()
 					: 0;
 
-			logger.info("✅ Response: {} {} - Status: {} - Duration: {}ms", requestMethod, requestPath, statusCode,
+			logger.info("  Response: {} {} - Status: {} - Duration: {}ms", requestMethod, requestPath, statusCode,
 					duration);
 		}));
 	}

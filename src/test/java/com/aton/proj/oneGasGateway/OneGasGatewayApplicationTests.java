@@ -1,10 +1,10 @@
-package com.aton.proj.onGasGateway;
+package com.aton.proj.oneGasGateway;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class OnGasGatewayApplicationTests {
+class OneGasGatewayApplicationTests {
 
 	@Test
 	void contextLoads() {

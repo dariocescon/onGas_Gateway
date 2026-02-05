@@ -1,4 +1,4 @@
-package com.aton.proj.onGasGateway.controller;
+package com.aton.proj.oneGasGateway.controller;
 
 import java.util.Map;
 

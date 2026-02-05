@@ -1,24 +1,24 @@
-package com.aton.proj.onGasGateway.config;
+package com.aton.proj.oneGasGateway.config;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.loadbalancer.core.ReactorLoadBalancer;
-import org.springframework.cloud.loadbalancer.core.RoundRobinLoadBalancer;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
-import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.env.Environment;
 
 import reactor.core.publisher.Flux;
 
 @Configuration
 public class LoadBalancerConfig {
+
+	private static final Logger logger = LoggerFactory.getLogger(LoadBalancerConfig.class);
 
 	/**
 	 * Bean per leggere la configurazione delle istanze da application.properties
@@ -26,6 +26,9 @@ public class LoadBalancerConfig {
 	@Bean
 	@ConfigurationProperties(prefix = "meteor")
 	public MeteorInstancesConfig meteorInstancesConfig() {
+		logger.debug("========================================");
+		logger.debug("  Creazione MeteorInstancesConfig bean");
+		logger.debug("========================================");
 		return new MeteorInstancesConfig();
 	}
 
@@ -35,6 +38,13 @@ public class LoadBalancerConfig {
 	@Bean
 	@Primary
 	public ServiceInstanceListSupplier serviceInstanceListSupplier(MeteorInstancesConfig config) {
+
+		logger.debug("========================================");
+		logger.debug("   Creazione ServiceInstanceListSupplier");
+		logger.debug("   Config ricevuto: " + config);
+		logger.debug("   Istanze: " + (config.getInstances() != null ? config.getInstances().size() : "NULL"));
+		logger.debug("========================================");
+
 		return new ServiceInstanceListSupplier() {
 			@Override
 			public String getServiceId() {
@@ -43,29 +53,25 @@ public class LoadBalancerConfig {
 
 			@Override
 			public Flux<List<ServiceInstance>> get() {
-				List<ServiceInstance> instances = config.getInstances().stream()
-						.map(instance -> new DefaultServiceInstance(instance.getInstanceId(), "ongas-meteor",
-								instance.getHost(), instance.getPort(), false // false = HTTP, true = HTTPS
-				)).collect(Collectors.toList());
 
+				logger.debug("  ServiceInstanceListSupplier.get() chiamato!");
+
+				if (config.getInstances() == null || config.getInstances().isEmpty()) {
+					System.err.println("  ERRORE: config.getInstances() è null o vuoto!");
+					return Flux.just(List.of());
+				}
+
+				List<ServiceInstance> instances = config.getInstances().stream().map(instance -> {
+					logger.debug("  Caricata istanza: " + instance.getInstanceId() + " -> " + instance.getHost()
+							+ ":" + instance.getPort());
+					return new DefaultServiceInstance(instance.getInstanceId(), "onegas-meteor", instance.getHost(),
+							instance.getPort(), false);
+				}).collect(Collectors.toList());
+
+				logger.debug("  Totale istanze caricate: " + instances.size());
 				return Flux.just(instances);
 			}
 		};
-	}
-
-	// Configurazione specifica per ongas-meteor
-	public static class MeteorLoadBalancerConfiguration {
-
-		/**
-		 * Configura RoundRobin Load Balancer (Default)
-		 */
-		@Bean
-		public ReactorLoadBalancer<ServiceInstance> reactorServiceInstanceLoadBalancer(Environment environment,
-				LoadBalancerClientFactory loadBalancerClientFactory) {
-			String name = environment.getProperty(LoadBalancerClientFactory.PROPERTY_NAME);
-			return new RoundRobinLoadBalancer(
-					loadBalancerClientFactory.getLazyProvider(name, ServiceInstanceListSupplier.class), name);
-		}
 	}
 
 	/**

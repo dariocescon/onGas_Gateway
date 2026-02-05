@@ -1,13 +1,13 @@
-package com.aton.proj.onGasGateway;
+package com.aton.proj.oneGasGateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class OnGasGatewayApplication {
+public class OneGasGatewayApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(OnGasGatewayApplication.class, args);
+		SpringApplication.run(OneGasGatewayApplication.class, args);
 	}
 
 }

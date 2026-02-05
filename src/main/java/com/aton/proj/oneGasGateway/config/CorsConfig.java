@@ -1,8 +1,10 @@
-package com.aton.proj.onGasGateway.config;
+package com.aton.proj.oneGasGateway.config;
 
 import java.util.Arrays;
 import java.util.Collections;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -11,6 +13,8 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class CorsConfig {
+
+	private static final Logger logger = LoggerFactory.getLogger(CorsConfig.class);
 
 	@Bean
 	public CorsWebFilter corsWebFilter() {

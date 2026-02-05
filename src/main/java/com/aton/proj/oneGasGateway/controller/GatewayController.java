@@ -1,7 +1,8 @@
-package com.aton.proj.onGasGateway.controller;
+package com.aton.proj.oneGasGateway.controller;
 
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -12,6 +13,9 @@ import reactor.core.publisher.Mono;
  */
 @RestController
 public class GatewayController {
+	
+	@Value("${server.port}")
+	private int serverPort;
 
     @GetMapping("/")
     public Mono<Map<String, String>> responder() {
@@ -20,4 +24,10 @@ public class GatewayController {
             "service", "onGas_Gateway"
         ));
     }
+    
+//    @GetMapping("/status")
+//	public String status() {
+//
+//		return String.valueOf(serverPort);
+//	}
 }
