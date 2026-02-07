@@ -1,0 +1,78 @@
+graph TB
+    subgraph "Internet"
+        DEVICES[📡 IoT Devices<br/>Campo]
+    end
+    
+    subgraph "Azure"
+        LB_EXT[⚖️ External Load Balancer<br/>HTTPS]
+        
+        subgraph "Gateway Cluster"
+            GW1[Gateway Instance 1<br/>:8080]
+            GW2[Gateway Instance 2<br/>:8080]
+        end
+        
+        subgraph "Meteor Cluster"
+            M1[Meteor Instance 1<br/>:8081]
+            M2[Meteor Instance 2<br/>:8082]
+            M3[Meteor Instance 3<br/>:8083]
+        end
+        
+        subgraph "Database Cluster"
+            DB_MASTER[(SQL Server<br/>Master)]
+            DB_REPLICA1[(SQL Server<br/>Replica 1)]
+            DB_REPLICA2[(SQL Server<br/>Replica 2)]
+        end
+        
+        subgraph "Monitoring"
+            PROMETHEUS[📊 Prometheus]
+            GRAFANA[📈 Grafana]
+            LOGS[📝 ELK Stack]
+        end
+    end
+    
+    DEVICES -->|HTTPS| LB_EXT
+    LB_EXT --> GW1
+    LB_EXT --> GW2
+    
+    GW1 --> M1
+    GW1 --> M2
+    GW1 --> M3
+    GW2 --> M1
+    GW2 --> M2
+    GW2 --> M3
+    
+    M1 -->|Write| DB_MASTER
+    M2 -->|Write| DB_MASTER
+    M3 -->|Write| DB_MASTER
+    
+    DB_MASTER -.Replicate.-> DB_REPLICA1
+    DB_MASTER -.Replicate.-> DB_REPLICA2
+    
+    M1 -->|Read| DB_REPLICA1
+    M2 -->|Read| DB_REPLICA2
+    M3 -->|Read| DB_REPLICA1
+    
+    M1 -.Metrics.-> PROMETHEUS
+    M2 -.Metrics.-> PROMETHEUS
+    M3 -.Metrics.-> PROMETHEUS
+    GW1 -.Metrics.-> PROMETHEUS
+    GW2 -.Metrics.-> PROMETHEUS
+    
+    PROMETHEUS --> GRAFANA
+    
+    M1 -.Logs.-> LOGS
+    M2 -.Logs.-> LOGS
+    M3 -.Logs.-> LOGS
+    GW1 -.Logs.-> LOGS
+    GW2 -.Logs.-> LOGS
+    
+    style DEVICES fill:#e1f5ff
+    style LB_EXT fill:#ffc107
+    style GW1 fill:#fff3cd
+    style GW2 fill:#fff3cd
+    style M1 fill:#d4edda
+    style M2 fill:#d4edda
+    style M3 fill:#d4edda
+    style DB_MASTER fill:#f8d7da
+    style DB_REPLICA1 fill:#ffe6e6
+    style DB_REPLICA2 fill:#ffe6e6

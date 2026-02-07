@@ -1,0 +1,56 @@
+I dispositivi IoT sul campo (sensori Tekelek) inviano i loro dati al Gateway, che distribuisce intelligentemente il carico tra 3 istanze Meteor in esecuzione. Ogni istanza salva i dati nel database centrale e recupera eventuali comandi da inviare ai dispositivi. Gli amministratori possono configurare nuovi comandi tramite il pannello admin.
+
+graph TB
+    subgraph "🌍 Dispositivi IoT sul campo"
+        DEV1[📡 TEK822 Device 1]
+        DEV2[📡 TEK586 Device 2]
+        DEV3[📡 TEK900 Device 3]
+    end
+    
+    subgraph "☁️ Sistema Cloud oneGas"
+        GW[🚪 Gateway<br/>Load Balancer<br/>Porta 8080]
+        
+        subgraph "🔄 Istanze Meteor Attive"
+            M1[⚡ Meteor 1<br/>Porta 8081]
+            M2[⚡ Meteor 2<br/>Porta 8082]
+            M3[⚡ Meteor 3<br/>Porta 8083]
+        end
+        
+        DB[(💾 Database<br/>SQL Server)]
+    end
+    
+    subgraph "👥 Amministratori"
+        ADMIN[👤 Admin Panel]
+    end
+    
+    DEV1 -->|"📤 Invia dati telemetria"| GW
+    DEV2 -->|"📤 Invia dati telemetria"| GW
+    DEV3 -->|"📤 Invia dati telemetria"| GW
+    
+    GW -->|"⚖️ Distribuisce carico"| M1
+    GW -->|"⚖️ Distribuisce carico"| M2
+    GW -->|"⚖️ Distribuisce carico"| M3
+    
+    M1 -->|"💾 Salva dati"| DB
+    M2 -->|"💾 Salva dati"| DB
+    M3 -->|"💾 Salva dati"| DB
+    
+    M1 -->|"📥 Recupera comandi"| DB
+    M2 -->|"📥 Recupera comandi"| DB
+    M3 -->|"📥 Recupera comandi"| DB
+    
+    GW -->|"📨 Risponde con comandi"| DEV1
+    GW -->|"📨 Risponde con comandi"| DEV2
+    GW -->|"📨 Risponde con comandi"| DEV3
+    
+    ADMIN -->|"⚙️ Configura comandi"| DB
+    
+    style DEV1 fill:#e1f5ff
+    style DEV2 fill:#e1f5ff
+    style DEV3 fill:#e1f5ff
+    style GW fill:#fff3cd
+    style M1 fill:#d4edda
+    style M2 fill:#d4edda
+    style M3 fill:#d4edda
+    style DB fill:#f8d7da
+    style ADMIN fill:#e7e7ff

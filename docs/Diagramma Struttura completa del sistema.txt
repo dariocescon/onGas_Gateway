@@ -1,0 +1,81 @@
+graph TB
+    subgraph "IoT Devices"
+        TEK[📡 Tekelek Devices<br/>TEK822, TEK586, etc.]
+    end
+    
+    subgraph "Gateway Service - Port 8080"
+        GW_CTRL[GatewayController]
+        GW_SVC[GatewayService]
+        LB[LoadBalancer<br/>RoundRobin]
+        INST_MGR[InstanceManager]
+    end
+    
+    subgraph "Meteor Instance 1 - Port 8081"
+        M1_CTRL[TelemetryController]
+        M1_SVC[TelemetryService]
+        M1_DEC[DecoderFactory]
+        M1_ENC[EncoderFactory]
+        M1_REPO[Repositories]
+    end
+    
+    subgraph "Meteor Instance 2 - Port 8082"
+        M2_CTRL[TelemetryController]
+        M2_SVC[TelemetryService]
+        M2_DEC[DecoderFactory]
+        M2_ENC[EncoderFactory]
+        M2_REPO[Repositories]
+    end
+    
+    subgraph "Meteor Instance 3 - Port 8083"
+        M3_CTRL[TelemetryController]
+        M3_SVC[TelemetryService]
+        M3_DEC[DecoderFactory]
+        M3_ENC[EncoderFactory]
+        M3_REPO[Repositories]
+    end
+    
+    subgraph "Database Layer"
+        DB[(SQL Server<br/>oneGasDB)]
+        T_TBL[telemetry_data]
+        C_TBL[device_commands]
+    end
+    
+    TEK -->|POST /gateway/telemetry<br/>hex string| GW_CTRL
+    GW_CTRL --> GW_SVC
+    GW_SVC --> LB
+    LB --> INST_MGR
+    
+    INST_MGR -->|Forward to<br/>available instance| M1_CTRL
+    INST_MGR -->|Forward to<br/>available instance| M2_CTRL
+    INST_MGR -->|Forward to<br/>available instance| M3_CTRL
+    
+    M1_CTRL --> M1_SVC
+    M1_SVC --> M1_DEC
+    M1_SVC --> M1_ENC
+    M1_SVC --> M1_REPO
+    
+    M2_CTRL --> M2_SVC
+    M2_SVC --> M2_DEC
+    M2_SVC --> M2_ENC
+    M2_SVC --> M2_REPO
+    
+    M3_CTRL --> M3_SVC
+    M3_SVC --> M3_DEC
+    M3_SVC --> M3_ENC
+    M3_SVC --> M3_REPO
+    
+    M1_REPO --> DB
+    M2_REPO --> DB
+    M3_REPO --> DB
+    
+    DB --> T_TBL
+    DB --> C_TBL
+    
+    style TEK fill:#e1f5ff
+    style GW_CTRL fill:#fff3cd
+    style GW_SVC fill:#fff3cd
+    style LB fill:#ffc107
+    style M1_CTRL fill:#d4edda
+    style M2_CTRL fill:#d4edda
+    style M3_CTRL fill:#d4edda
+    style DB fill:#f8d7da

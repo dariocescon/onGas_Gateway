@@ -1,0 +1,78 @@
+graph TB
+    subgraph "Gateway Application Port 8080"
+        
+        subgraph "Controller Layer"
+            GW_CTRL[GatewayController]
+            HEALTH_EP[GET /health]
+            PING_EP[GET /ping]
+            TELEM_EP[POST /gateway/telemetry]
+            STATS_EP[GET /gateway/stats]
+        end
+        
+        subgraph "Service Layer"
+            GW_SVC[GatewayService]
+            LB_STRAT[LoadBalancerStrategy]
+            
+            subgraph "Strategies"
+                RR[RoundRobinStrategy<br/>Priority 1]
+            end
+        end
+        
+        subgraph "Configuration Layer"
+            INST_MGR[InstanceManager]
+            CONFIG["Configuration<br/>- meteor.instances<br/>- load-balancer.type"]
+            HEALTH_CHK[HealthCheckScheduler]
+        end
+        
+        subgraph "Monitoring Layer"
+            METRICS[MetricsCollector]
+            LOGGER[RequestLogger]
+            COUNTER[RequestCounter]
+        end
+    end
+    
+    subgraph "Meteor Cluster"
+        M1["Meteor Instance 1<br/>localhost:8081<br/>Status: HEALTHY"]
+        M2["Meteor Instance 2<br/>localhost:8082<br/>Status: HEALTHY"]
+        M3["Meteor Instance 3<br/>localhost:8083<br/>Status: HEALTHY"]
+    end
+    
+    GW_CTRL --> HEALTH_EP
+    GW_CTRL --> PING_EP
+    GW_CTRL --> TELEM_EP
+    GW_CTRL --> STATS_EP
+    
+    TELEM_EP --> GW_SVC
+    STATS_EP --> METRICS
+    
+    GW_SVC --> LB_STRAT
+    LB_STRAT --> RR
+    LB_STRAT --> RANDOM
+    
+    GW_SVC --> INST_MGR
+    INST_MGR --> CONFIG
+    INST_MGR --> HEALTH_CHK
+    
+    GW_SVC --> METRICS
+    GW_SVC --> LOGGER
+    METRICS --> COUNTER
+    
+    HEALTH_CHK -.Periodic check.-> M1
+    HEALTH_CHK -.Periodic check.-> M2
+    HEALTH_CHK -.Periodic check.-> M3
+    
+    RR -->|Forward| M1
+    RR -->|Forward| M2
+    RR -->|Forward| M3
+    
+    RANDOM -.Fallback.-> M1
+    RANDOM -.Fallback.-> M2
+    RANDOM -.Fallback.-> M3
+    
+    style GW_CTRL fill:#fff3cd,stroke:#333,stroke-width:2px
+    style GW_SVC fill:#e1f5ff,stroke:#333,stroke-width:2px
+    style LB_STRAT fill:#ffc107,stroke:#333,stroke-width:2px
+    style M1 fill:#d4edda,stroke:#28a745,stroke-width:2px
+    style M2 fill:#d4edda,stroke:#28a745,stroke-width:2px
+    style M3 fill:#d4edda,stroke:#28a745,stroke-width:2px
+    style METRICS fill:#e7e7ff,stroke:#333,stroke-width:1px

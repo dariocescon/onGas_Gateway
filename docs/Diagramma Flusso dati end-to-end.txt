@@ -1,0 +1,46 @@
+flowchart TD
+    START([Device acceso]) --> MEASURE[📏 Device misura<br/>distanza, temp, battery]
+    MEASURE --> ENCODE[🔐 Device codifica<br/>in hex string]
+    ENCODE --> SEND[📤 POST /gateway/telemetry]
+    
+    SEND --> GW_RECV[🚪 Gateway riceve]
+    GW_RECV --> GW_SELECT{⚖️ Seleziona istanza<br/>RoundRobin}
+    
+    GW_SELECT -->|Instance 1| M1_RECV[⚡ Meteor 1]
+    GW_SELECT -->|Instance 2| M2_RECV[⚡ Meteor 2]
+    GW_SELECT -->|Instance 3| M3_RECV[⚡ Meteor 3]
+    
+    M1_RECV --> DECODE
+    M2_RECV --> DECODE
+    M3_RECV --> DECODE
+    
+    DECODE[🔍 Decode hex<br/>→ DecodedMessage]
+    DECODE --> EXTRACT[📊 Estrai campi<br/>IMEI, battery, etc.]
+    EXTRACT --> SAVE[💾 Salva in DB]
+    
+    SAVE --> CHECK_CMD{📋 Ci sono comandi<br/>pendenti?}
+    
+    CHECK_CMD -->|No| RESP_NO[📨 Risposta senza comandi]
+    CHECK_CMD -->|Sì| GET_CMD[📥 Recupera comandi da DB]
+    
+    GET_CMD --> ENCODE_CMD[🔧 Codifica comandi<br/>→ hex string]
+    ENCODE_CMD --> MARK_SENT[✅ Marca comandi<br/>come SENT]
+    MARK_SENT --> RESP_YES[📨 Risposta con comandi]
+    
+    RESP_NO --> GW_FORWARD
+    RESP_YES --> GW_FORWARD
+    
+    GW_FORWARD[🚪 Gateway inoltra risposta]
+    GW_FORWARD --> DEV_EXEC[📡 Device riceve<br/>ed esegue comandi]
+    
+    DEV_EXEC --> END([Fine ciclo])
+    
+    style START fill:#e1f5ff
+    style MEASURE fill:#d4edda
+    style ENCODE fill:#fff3cd
+    style SEND fill:#ffc107
+    style GW_RECV fill:#fff3cd
+    style DECODE fill:#d4edda
+    style SAVE fill:#f8d7da
+    style ENCODE_CMD fill:#ffd4d4
+    style END fill:#e1f5ff

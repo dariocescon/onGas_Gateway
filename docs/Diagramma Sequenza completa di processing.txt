@@ -1,0 +1,57 @@
+sequenceDiagram
+    participant Device as 📡 TEK822 Device
+    participant Gateway as 🚪 Gateway :8080
+    participant Meteor as ⚡ Meteor :8081
+    participant Decoder as 🔍 Decoder
+    participant Encoder as 🔧 Encoder
+    participant DB as 💾 Database
+    
+    Device->>Gateway: POST /gateway/telemetry<br/>{hex: "080181..."}
+    activate Gateway
+    
+    Gateway->>Gateway: Select available instance<br/>(RoundRobin)
+    Gateway->>Meteor: Forward POST /telemetry
+    activate Meteor
+    
+    Meteor->>Decoder: getDecoder(payload)
+    activate Decoder
+    Decoder-->>Meteor: Tek822Decoder
+    deactivate Decoder
+    
+    Meteor->>Decoder: decode(message)
+    activate Decoder
+    Decoder-->>Meteor: DecodedMessage<br/>(IMEI, Battery, etc.)
+    deactivate Decoder
+    
+    Meteor->>DB: save(telemetry)
+    activate DB
+    DB-->>Meteor: saved (id=123)
+    deactivate DB
+    
+    Meteor->>DB: findPendingCommands(deviceId)
+    activate DB
+    DB-->>Meteor: [SET_INTERVAL, REBOOT]
+    deactivate DB
+    
+    Meteor->>Encoder: getEncoder(deviceType)
+    activate Encoder
+    Encoder-->>Meteor: Tek822Encoder
+    deactivate Encoder
+    
+    Meteor->>Encoder: encode(commands)
+    activate Encoder
+    Encoder-->>Meteor: ["53490F15", "52420010"]
+    deactivate Encoder
+    
+    Meteor->>DB: markAsSent(commandIds)
+    activate DB
+    DB-->>Meteor: updated
+    deactivate DB
+    
+    Meteor-->>Gateway: Response + commands
+    deactivate Meteor
+    
+    Gateway-->>Device: HTTP 200 OK<br/>{"commands": [...]}
+    deactivate Gateway
+    
+    Note over Device: Device esegue<br/>i comandi ricevuti
